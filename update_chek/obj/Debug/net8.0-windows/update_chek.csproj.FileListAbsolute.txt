@@ -19,3 +19,4 @@ C:\update_chek\update_chek\bin\Debug\net8.0-windows\KafkaFlow.Serializer.Newtons
 C:\update_chek\update_chek\bin\Debug\net8.0-windows\Newtonsoft.Json.dll
 C:\update_chek\update_chek\obj\Debug\net8.0-windows\update_chek.csproj.AssemblyReference.cache
 C:\update_chek\update_chek\obj\Debug\net8.0-windows\update_c.AF0E6389.Up2Date
+C:\update_chek\update_chek\obj\Debug\net8.0-windows\update_chek.sourcelink.json

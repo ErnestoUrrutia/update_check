@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace update_chek
 {
@@ -23,7 +24,25 @@ namespace update_chek
         // Método para revisar la versión
         static async Task revisar_version()
         {
-            string installedVersion = "1.2.1"; // Versión actual de la aplicación
+
+            string exePath = @"C:\Deep\DeepControl.exe";
+
+            // Obtener la información de versión del archivo
+            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(exePath);
+
+            // Imprimir el número de versión del ejecutable
+            MessageBox.Show($"Versión del ejecutable: {versionInfo.FileVersion}");
+
+            // Opcional: Imprimir otros detalles
+            MessageBox.Show($"Producto: {versionInfo.ProductName}");
+            MessageBox.Show($"Descripción: {versionInfo.FileDescription}");
+             MessageBox.Show($"Empresa: {versionInfo.CompanyName}");
+
+
+
+
+
+            string installedVersion = ""+versionInfo.FileVersion; // Versión actual de la aplicación
 
             // URL del script PHP que devuelve la versión más reciente
             string versionCheckUrl = "https://ernestourrutia.com.mx/update_check/version/deepcontrol/";
@@ -40,19 +59,20 @@ namespace update_chek
 
                     // Parsear el contenido JSON
                     JObject json = JObject.Parse(content);
-
+                    
                     // Obtener la versión y el enlace de descarga
                     string latestVersion = json["version"].ToString();
                     string downloadLink = json["url"].ToString();
-
+                    MessageBox.Show(latestVersion+" "+installedVersion);
                     // Mostrar información de la versión
-                    MessageBox.Show(latestVersion + " " + downloadLink);
+                    string filePathExe = @"C:\Deep\DeepControl.exe";
+                    string filePathIco = @"C:\Deep\logotipot";
 
                     // Comparar la versión instalada con la más reciente
-                    if (installedVersion != latestVersion)
+                    if (installedVersion != latestVersion|| !File.Exists(filePathExe) || !File.Exists(filePathIco))
                     {
-                        MessageBox.Show($"Hay una nueva versión disponible: {latestVersion}");
-
+                        //MessageBox.Show($"Hay una nueva versión disponible: {latestVersion}");
+                        Process.Start("taskkill", $"/f /im DeepControl.exe");
                         // Guardar el archivo en la ruta raíz del proyecto
                         string rootPath = Directory.GetCurrentDirectory();
                         string zipFilePath = Path.Combine(rootPath, "update.zip");
@@ -61,7 +81,7 @@ namespace update_chek
                         bool downloadSuccess = await DownloadFileAsync(downloadLink, zipFilePath);
                         if (downloadSuccess)
                         {
-                            MessageBox.Show("La actualización se ha descargado correctamente.");
+                            //MessageBox.Show("La actualización se ha descargado correctamente.");
 
                             // Ruta donde se descomprimirá el contenido
                             string extractPath = "C:\\Deep"; // Descomprimir en la raíz del proyecto
@@ -69,6 +89,8 @@ namespace update_chek
                             // Descomprimir y reemplazar archivos existentes
                             DescomprimirYReemplazar(zipFilePath, extractPath);
                             MessageBox.Show("Actualización completada y archivos reemplazados.");
+                            Process.Start(@"C:\Deep\DeepControl.exe");
+                            Application.Exit();
                         }
                         else
                         {
