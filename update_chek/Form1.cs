@@ -16,100 +16,93 @@ namespace update_chek
             InitializeComponent();
             this.ShowInTaskbar = false;
             this.Visible = false;
-
-            // Revisar la versión al iniciar
             revisar_version();
         }
-
-        // Método para revisar la versión
         static async Task revisar_version()
         {
+            string filePathExe = @"C:\Deep\DeepControl.exe";
+            string filePathIco = @"C:\Deep\logotipo.ico";
+            string installedVersion = "";
 
-            string exePath = @"C:\Deep\DeepControl.exe";
-
-            // Obtener la información de versión del archivo
-            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(exePath);
-
-            // Imprimir el número de versión del ejecutable
-            MessageBox.Show($"Versión del ejecutable: {versionInfo.FileVersion}");
-
-            // Opcional: Imprimir otros detalles
-            MessageBox.Show($"Producto: {versionInfo.ProductName}");
-            MessageBox.Show($"Descripción: {versionInfo.FileDescription}");
-             MessageBox.Show($"Empresa: {versionInfo.CompanyName}");
-
-
-
-
-
-            string installedVersion = ""+versionInfo.FileVersion; // Versión actual de la aplicación
-
-            // URL del script PHP que devuelve la versión más reciente
+            if (File.Exists(filePathExe))
+            {
+                
+                FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(filePathExe);
+                
+                try
+                {
+                    installedVersion = "" + versionInfo.FileVersion;
+                }
+                catch (Exception ex)
+                {
+                    installedVersion = "0";
+                }
+            }
             string versionCheckUrl = "https://ernestourrutia.com.mx/update_check/version/deepcontrol/";
-
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
                     HttpResponseMessage response = await client.GetAsync(versionCheckUrl);
                     response.EnsureSuccessStatusCode();
-
-                    // Leer el contenido de la respuesta
                     string content = await response.Content.ReadAsStringAsync();
-
-                    // Parsear el contenido JSON
                     JObject json = JObject.Parse(content);
-                    
-                    // Obtener la versión y el enlace de descarga
-                    string latestVersion = json["version"].ToString();
+                    string latestVersion = json["version"].ToString().Trim();
                     string downloadLink = json["url"].ToString();
-                    MessageBox.Show(latestVersion+" "+installedVersion);
-                    // Mostrar información de la versión
-                    string filePathExe = @"C:\Deep\DeepControl.exe";
-                    string filePathIco = @"C:\Deep\logotipot";
-
-                    // Comparar la versión instalada con la más reciente
-                    if (installedVersion != latestVersion|| !File.Exists(filePathExe) || !File.Exists(filePathIco))
+                    
+                    if (installedVersion != latestVersion)
                     {
-                        //MessageBox.Show($"Hay una nueva versión disponible: {latestVersion}");
                         Process.Start("taskkill", $"/f /im DeepControl.exe");
-                        // Guardar el archivo en la ruta raíz del proyecto
                         string rootPath = Directory.GetCurrentDirectory();
                         string zipFilePath = Path.Combine(rootPath, "update.zip");
-
-                        // Descargar el archivo y verificar el resultado
                         bool downloadSuccess = await DownloadFileAsync(downloadLink, zipFilePath);
                         if (downloadSuccess)
                         {
-                            //MessageBox.Show("La actualización se ha descargado correctamente.");
-
-                            // Ruta donde se descomprimirá el contenido
-                            string extractPath = "C:\\Deep"; // Descomprimir en la raíz del proyecto
-
-                            // Descomprimir y reemplazar archivos existentes
+                            string extractPath = "C:\\Deep";
                             DescomprimirYReemplazar(zipFilePath, extractPath);
-                            MessageBox.Show("Actualización completada y archivos reemplazados.");
+                            Process.Start("attrib", "+s +h C:\\Deep");
+                            Process.Start("taskkill", $"/f /im DeepControl.exe");
+                            Thread.Sleep(2000);
                             Process.Start(@"C:\Deep\DeepControl.exe");
                             Application.Exit();
                         }
                         else
                         {
-                            MessageBox.Show("Error al descargar el archivo.");
+                            if (File.Exists(filePathExe))
+                            {
+                                Process.Start("taskkill", $"/f /im DeepControl.exe");
+                                Thread.Sleep(2000);
+                                Process.Start(@"C:\Deep\DeepControl.exe");
+                            }
+                            Application.Exit();
                         }
+                        
                     }
                     else
                     {
-                        MessageBox.Show("Tu aplicación está actualizada.");
+                        Process.Start("taskkill", $"/f /im DeepControl.exe");
+                        Thread.Sleep(2000);
+                        Process.Start(@"C:\Deep\DeepControl.exe");
+                        Application.Exit();
                     }
                 }
-                catch (HttpRequestException e)
+                catch (Exception e)
                 {
                     MessageBox.Show("Error al conectarse al servidor: " + e.Message);
+                    if (File.Exists(filePathExe))
+                    {
+                        Process.Start("taskkill", $"/f /im DeepControl.exe");
+                        Thread.Sleep(2000);
+                        Process.Start(@"C:\Deep\DeepControl.exe");
+                    }
+                    Application.Exit();
                 }
             }
         }
+        public void terminarEiniciar()
+        {
 
-        // Método para descargar el archivo
+        }
         static async Task<bool> DownloadFileAsync(string url, string filePath)
         {
             try
@@ -119,7 +112,7 @@ namespace update_chek
                 {
                     if (!response.IsSuccessStatusCode)
                     {
-                        MessageBox.Show($"Error al descargar el archivo: {response.StatusCode}");
+                        //MessageBox.Show($"Error al descargar el archivo: {response.StatusCode}");
                         return false; // Error en la descarga
                     }
 
