@@ -21,14 +21,12 @@ namespace update_chek
         static async Task revisar_version()
         {
             string filePathExe = @"C:\Deep\DeepControl.exe";
-            string filePathIco = @"C:\Deep\logotipo.ico";
             string installedVersion = "";
 
             if (File.Exists(filePathExe))
             {
                 
                 FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(filePathExe);
-                
                 try
                 {
                     installedVersion = "" + versionInfo.FileVersion;
@@ -52,29 +50,26 @@ namespace update_chek
                     
                     if (installedVersion != latestVersion)
                     {
-                        Process.Start("taskkill", $"/f /im DeepControl.exe");
+                        
                         string rootPath = Directory.GetCurrentDirectory();
                         string zipFilePath = Path.Combine(rootPath, "update.zip");
                         bool downloadSuccess = await DownloadFileAsync(downloadLink, zipFilePath);
                         if (downloadSuccess)
                         {
+                            Process.Start("taskkill", $"/f /im DeepControl.exe");
                             string extractPath = "C:\\Deep";
                             DescomprimirYReemplazar(zipFilePath, extractPath);
                             Process.Start("attrib", "+s +h C:\\Deep");
-                            Process.Start("taskkill", $"/f /im DeepControl.exe");
                             Thread.Sleep(2000);
                             Process.Start(@"C:\Deep\DeepControl.exe");
                             Application.Exit();
                         }
                         else
                         {
-                            if (File.Exists(filePathExe))
-                            {
-                                Process.Start("taskkill", $"/f /im DeepControl.exe");
-                                Thread.Sleep(2000);
-                                Process.Start(@"C:\Deep\DeepControl.exe");
-                            }
-                            Application.Exit();
+                           Process.Start("taskkill", $"/f /im DeepControl.exe");
+                           Thread.Sleep(2000);
+                           Process.Start(@"C:\Deep\DeepControl.exe");
+                           Application.Exit();
                         }
                         
                     }
@@ -88,7 +83,7 @@ namespace update_chek
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("Error al conectarse al servidor: " + e.Message);
+                   
                     if (File.Exists(filePathExe))
                     {
                         Process.Start("taskkill", $"/f /im DeepControl.exe");
@@ -99,10 +94,7 @@ namespace update_chek
                 }
             }
         }
-        public void terminarEiniciar()
-        {
-
-        }
+        
         static async Task<bool> DownloadFileAsync(string url, string filePath)
         {
             try
@@ -112,47 +104,38 @@ namespace update_chek
                 {
                     if (!response.IsSuccessStatusCode)
                     {
-                        //MessageBox.Show($"Error al descargar el archivo: {response.StatusCode}");
-                        return false; // Error en la descarga
+                        return false; 
                     }
 
-                    // Crear el archivo en la ruta especificada
                     using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
                         await response.Content.CopyToAsync(fileStream);
                     }
-
-                    // Verificar si el archivo fue descargado correctamente
                     FileInfo fileInfo = new FileInfo(filePath);
                     if (fileInfo.Length > 0)
                     {
-                        return true; // La descarga fue exitosa
+                        return true; 
                     }
                     else
                     {
-                        MessageBox.Show("El archivo descargado está vacío.");
-                        return false; // El archivo está vacío
+                        return false;
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error durante la descarga: " + ex.Message);
-                return false; // Manejar errores de descarga
+               return false;
             }
         }
-
-        // Método para descomprimir y reemplazar archivos
         static void DescomprimirYReemplazar(string zipFilePath, string extractPath)
         {
             try
             {
-                // Descomprimir y reemplazar archivos existentes
                 ZipFile.ExtractToDirectory(zipFilePath, extractPath, overwriteFiles: true);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al descomprimir el archivo: " + ex.Message);
+               
             }
         }
 
